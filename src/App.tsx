@@ -14,14 +14,14 @@ import {
   ListItem,
   ListItemText,
   Drawer,
-  TextField,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  Stepper,
-  Step,
-  StepLabel,
-  StepContent,
+  // TextField,
+  // Radio,
+  // RadioGroup,
+  // FormControlLabel,
+  // Stepper,
+  // Step,
+  // StepLabel,
+  // StepContent,
   Grid,
   Box,
   CircularProgress,
@@ -38,88 +38,144 @@ import {
 } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-import FingerprintIcon from '@mui/icons-material/Fingerprint';
-import BadgeIcon from '@mui/icons-material/Badge';
-import {
-  SignifyClient, ready
-} from 'signify-ts';
+// import FingerprintIcon from '@mui/icons-material/Fingerprint';
+// import BadgeIcon from '@mui/icons-material/Badge';
+// import {
+//   SignifyClient, ready
+// } from 'signify-ts';
 import GridViewIcon from '@mui/icons-material/GridView';
 
 const uploadPath = '/upload';
 const statusPath = '/status';
 const verSigPath = '/verify/header';
-const signifyUrl = import.meta.env.VITE_SIGNIFY_URL;
+// const signifyUrl = import.meta.env.VITE_SIGNIFY_URL;
 const serverUrl = import.meta.env.VITE_SERVER_URL;
+let extensionId = '';
 
 const MainComponent = () => {
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [client, setClient] = useState<any | null>(null);
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false); // Open drawer by default
-  const [passcode, setPasscode] = useState('');
+  // const [passcode, setPasscode] = useState('');
   const [status, setStatus] = useState('Connect');
-  const [selectedOption1, setSelectedOption1] = useState(''); // Step 2 Selection
+  // const [selectedOption1, setSelectedOption1] = useState(''); // Step 2 Selection
   const [selectedOption2, setSelectedOption2] = useState(''); // Step 3 Selection
-  const [activeStep, setActiveStep] = useState(0);
-  const steps = ['Insert passcode', 'Choose an identifier', 'Choose a credential', 'Done'];
+  // const [activeStep, setActiveStep] = useState(0);
+  // const steps = ['Insert passcode', 'Choose an identifier', 'Choose a credential', 'Done'];
   const [modalError, setModalError] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [errorUpload, setErrorUpload] = useState('');
   const [submitResult, setSubmitResult] = useState('');
 
-  const [aids, setAids] = useState([]);
-  const [acdcs, setAcdcs] = useState([]);
+  // const [aids, setAids] = useState([]);
+  // const [acdcs, setAcdcs] = useState([]);
+  // const [extensionId, setExtensionId] = useState('');
 
 
-  useEffect(() => {
-    ready().then(() => {
-      console.log("signify client is ready", serverUrl);
-    })
-  }, [])
+
+
+  // useEffect(() => {
+  //   ready().then(() => {
+  //     console.log("signify client is ready", serverUrl);
+  //   })
+  // }, [])
 
   // Define the endpoint paths
-  const pingPath = '/ping';
+  // const pingPath = '/ping';
   const loginPath = '/login';
 
   // Function to handle the API request and response
 
   // Function to perform the ping request
-  async function ping(): Promise<string> {
-    const url = `${serverUrl}${pingPath}`;
+  // async function ping(): Promise<string> {
+  //   const url = `${serverUrl}${pingPath}`;
+  //   // Make the API request using the fetch function
+  //   const response = await fetch(url);
+  //   const responseData = await response.json();
 
-    // Make the API request using the fetch function
-    const response = await fetch(url);
-    const responseData = await response.json();
-
-    // Return the pong message
-    return responseData;
-  }
+  //   // Return the pong message
+  //   return responseData;
+  // }
 
   // Function to perform the login request
-  async function login(aid: string, said: string, vlei: string): Promise<any> {
-    const url = `${serverUrl}${loginPath}`;
+  // async function login(aid: string, said: string, vlei: string): Promise<any> {
+  //   const url = `${serverUrl}${loginPath}`;
 
-    // Create the request body object
-    const requestBody = {
-      aid,
-      said,
-      vlei
-    };
+  //   // Create the request body object
+  //   const requestBody = {
+  //     aid,
+  //     said,
+  //     vlei
+  //   };
 
-    // Make the API request using the fetch function
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
+  //   // Make the API request using the fetch function
+  //   const response = await fetch(url, {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json'
+  //     },
+  //     body: JSON.stringify(requestBody)
+  //   });
 
-    const responseData = await response.json();
+  //   const responseData = await response.json();
 
-    // Return the response data
-    return responseData;
-  }
+  //   // Return the response data
+  //   return responseData;
+  // }
+
+
+  window.addEventListener(
+    "message",
+    async (event) => {
+      // Accept messages only from same window
+      if (event.source !== window) {
+        return;
+      }
+      if (event.data.type && event.data.type === "signify-signature") {
+        const headers = event.data.data.headers;
+        const credential = event.data.data.credential;
+        const url = `${serverUrl}${loginPath}`;
+
+        const requestBody = {
+          aid: headers["signify-resource"],
+          said: credential.sad.d,
+          vlei: credential
+        };
+    
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',...headers
+          },
+          body: JSON.stringify(requestBody)
+        });
+        
+        if (response.ok) {
+          const responseData = await response.json();
+          if (responseData.result === 'success') {
+            setStatus('Connected')
+            setClient('fake client')
+            setSelectedOption2('fake said')
+            setModalError('')
+          } else {
+            setStatus('Failed')
+            setModalError('Login Failed. Please pick different credential')
+          }
+        } else {
+          setStatus('Failed')
+          setModalError('Connectivity error')
+        }
+      }
+      if (event.data.type && event.data.type === "signify-extension") {
+        console.log("Content scrip loaded");
+        // setExtensionId(event.data.data.extensionId);
+        extensionId = event.data.data.extensionId;
+      }
+    },
+    false
+  );
+
 
   const toggleDrawer = (open: any) => (event: any) => {
     if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
@@ -129,7 +185,9 @@ const MainComponent = () => {
   };
 
   const handleClickOpen = () => {
-    setOpen(true);
+    // setOpen(true);
+    window.postMessage({ type: "select-credential" }, "*");
+  
   };
 
   const handleClose = () => {
@@ -140,34 +198,34 @@ const MainComponent = () => {
 
   };
 
-  const checkHeaderSignatures = async (aid: any, name: any) => {
-    console.log("Checking header signatures")
-    const response_signed = await client.signedFetch(serverUrl,`${verSigPath}`, 'GET',null,name)
-    const response_signed_data = await response_signed.json();
-    console.log("header signature verification response",response_signed_data)
-  }
+  // const checkHeaderSignatures = async (aid: any, name: any) => {
+  //   console.log("Checking header signatures")
+  //   const response_signed = await client.signedFetch(serverUrl,`${verSigPath}`, 'GET',null,name)
+  //   const response_signed_data = await response_signed.json();
+  //   console.log("header signature verification response",response_signed_data)
+  // }
 
-  const loginReal = async () => {
-    const creds = client.credentials()
-    let vlei_cesr = await creds.get(selectedOption1, selectedOption2,true)
-    console.log("vlei cesr",vlei_cesr)
+  // const loginReal = async () => {
+  //   const creds = client.credentials()
+  //   let vlei_cesr = await creds.get(selectedOption1, selectedOption2,true)
+  //   console.log("vlei cesr",vlei_cesr)
 
-    let logged_in = await login(getSelectedAid().prefix, selectedOption2, vlei_cesr)
-    console.log("logged in result",logged_in)
-    if (logged_in.aid === getSelectedAid().prefix) {
-      setStatus('Connected')
-      setModalError('')
-      // await checkHeaderSignatures(getSelectedAid().prefix,getSelectedAid().name);
-    }
-    else if (JSON.stringify(logged_in).includes('Exception')) {
-      setStatus('Failed')
-      setModalError('Login Failed. Please pick different credential')
-    } else {
-      setStatus('Connecting')
-      setModalError('Waiting for verificaiton')
-    }
+  //   let logged_in = await login(getSelectedAid().prefix, selectedOption2, vlei_cesr)
+  //   console.log("logged in result",logged_in)
+  //   if (logged_in.aid === getSelectedAid().prefix) {
+  //     setStatus('Connected')
+  //     setModalError('')
+  //     // await checkHeaderSignatures(getSelectedAid().prefix,getSelectedAid().name);
+  //   }
+  //   else if (JSON.stringify(logged_in).includes('Exception')) {
+  //     setStatus('Failed')
+  //     setModalError('Login Failed. Please pick different credential')
+  //   } else {
+  //     setStatus('Connecting')
+  //     setModalError('Waiting for verificaiton')
+  //   }
 
-  }
+  // }
 
   const renderComponent = (componentName: any) => {
     //check if the client is not null then render the component otherwise set the drwar to true
@@ -181,10 +239,10 @@ const MainComponent = () => {
   };
 
   const getSelectedAid = () => {
-    const aid_found = aids.find(aid => aid.name === selectedOption1)
-    if (aid_found !== undefined) {
-      return aid_found
-    }
+    // const aid_found = aids.find(aid => aid.name === selectedOption1)
+    // if (aid_found !== undefined) {
+    //   return aid_found
+    // }
     return undefined
     return
   }
@@ -204,19 +262,20 @@ const MainComponent = () => {
     setSelectedOption2('')
     setStatus('Connecting')
     setModalError('Select a new identifier and credential')
+
   }
 
-  const connectToAgent = async (client: SignifyClient) => {
-    try {
-      await client.connect()
-      await client.state();
+  // const connectToAgent = async (client: SignifyClient) => {
+  //   try {
+  //     await client.connect()
+  //     await client.state();
 
-    } catch (e) {
-      await client.boot();
-      await client.connect()
-      await client.state();
-    }
-  }
+  //   } catch (e) {
+  //     await client.boot();
+  //     await client.connect()
+  //     await client.state();
+  //   }
+  // }
   return (
     <Box
       display="flex"
@@ -288,7 +347,7 @@ const MainComponent = () => {
             ))}
           </List>
         </div>
-        {client !== null && status === 'Connected' &&
+        {/* {client !== null && status === 'Connected' &&
           <div style={{ marginTop: 'auto', textAlign: 'center' }}>
             <Divider />
             <List>
@@ -319,7 +378,7 @@ const MainComponent = () => {
                 </Button>
               </ListItem>
             </List>
-          </div>}
+          </div>} */}
 
       </Drawer>
       <Dialog open={open} onClose={handleClose} disableEscapeKeyDown={true}>
@@ -340,6 +399,11 @@ const MainComponent = () => {
           >
             {status}
           </Button>
+          {modalError !== '' && <Alert severity={modalError.includes('agent') ? 'error' : 'warning'}>
+            <Typography variant="body2">
+              {modalError}
+            </Typography>
+          </Alert>}
           <Tooltip title="Close" key={'close'}>
             <IconButton
               component="div"
@@ -357,7 +421,7 @@ const MainComponent = () => {
               {modalError}
             </Typography>
           </Alert>}
-          <Stepper activeStep={activeStep} orientation="vertical">
+          {/* <Stepper activeStep={activeStep} orientation="vertical">
             {steps.map((label, index) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
@@ -519,7 +583,7 @@ const MainComponent = () => {
                 </StepContent>
               </Step>
             ))}
-          </Stepper>
+          </Stepper> */}
         </DialogContent>
       </Dialog>
       {client === null && <LandingComponent text='Welcome to EBA portal' />}
@@ -552,6 +616,7 @@ const reduceString = (str: string) => {
   if (str.length > 40) { //TODO change to smaller number
     return str.slice(0, 6) + '...' + str.slice(str.length - 6, str.length)
   }
+
   return str
 }
 
@@ -620,16 +685,38 @@ const DragAndDropUploader = ({ client, errorUpload, setErrorUpload, submitResult
   async function upload(aid: string, said: string, report: string): Promise<any> {
     const formData = new FormData();
     formData.append('upload', report);
+    said = "asdasd"
     
-    // // Send signed request
+    // Send signed request
     console.log("Form data is",formData.get('upload'))
-    const response_signed = await client.signedFetch(serverUrl,`${uploadPath}/${aid.prefix}/${said}`, 'POST',formData,aid.name)
-    const response_signed_data = await response_signed.json();
-    console.log("upload response",response_signed_data)
+    const { data, error } = await chrome.runtime.sendMessage(extensionId, {
+      type: "fetch-resource",
+      subtype: "auto-signin-signature",
+    });
+
+    const headers = data.headers;
+    const url = `${serverUrl}${uploadPath}/${headers["signify-resource"]}/${said}`
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: formData
+    });
+    
+    if (response.ok) {
+      console.log("upload OK")
+    }
+
+      // alert(
+      //   "Signed headers received\n" + JSON.stringify(data.headers, null, 2)
+      // );
+    // // const response_signed = await client.signedFetch(serverUrl,`${uploadPath}/${aid.prefix}/${said}`, 'POST',formData,aid.name)
+    // // const response_signed_data = await response_signed.json();
+    // console.log("upload response",response_signed_data)
 
 
     // Return the response data
-    return response_signed_data;
+    // return response_signed_data;
   }
 
   const handleSubmit = async () => {
@@ -779,6 +866,7 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
         // Replace this with your actual fetch URL
         setLoading(true);
         let d = await checkUpload(selectedAid)
+        console.log(d)
         console.log("Response data is type and data",typeof(d),d)
         let newData = new Set<any>()
         let statuses = Object.keys(d).map((item: any) => {
@@ -807,13 +895,37 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
     setOpenModalTable(false);
   };
 
-  // Function to perform the upload request
+  // Function to perform the upload check
   async function checkUpload(aid): Promise<any> {
      // // Send signed request
-    const response_signed = await client.signedFetch(serverUrl,`${statusPath}/${aid.prefix}`, 'GET',null,aid.name)
-    const response_signed_data = await response_signed.json();
-    console.log(response_signed_data)
-    return response_signed_data;
+     console.log(extensionId)
+     const { data, error } = await chrome.runtime.sendMessage(extensionId, {
+      type: "fetch-resource",
+      subtype: "auto-signin-signature",
+    });
+
+    const headers = data.headers;
+    const url = `${serverUrl}${statusPath}/${headers["signify-resource"]}`
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers
+    });
+    
+    if (response.ok) {
+      const response_signed_data = await response.json();
+      console.log("RM HERE2")
+      console.log(JSON.stringify(response_signed_data))
+      return response_signed_data;
+    
+    } else {
+      console.log("Error in check upload")
+      return {}
+    }
+
+    // const response_signed = await client.signedFetch(serverUrl,`${statusPath}/${aid.prefix}`, 'GET',null,aid.name)
+    // const response_signed_data = await response_signed.json();
+    
   }
 
   return (
@@ -851,7 +963,8 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((item: any) => (
+            {
+            data.map((item: any) => (
               <TableRow key={item.filename} onClick={() => handleRowClick(item)}>
                 <TableCell>{item.filename == undefined ? "unknown" : item.filename.substring(0,75)}</TableCell>
                 <TableCell>{item.size == undefined ? "unknown" : item.size}</TableCell>
