@@ -47,20 +47,20 @@ import GridViewIcon from '@mui/icons-material/GridView';
 
 const uploadPath = '/upload';
 const statusPath = '/status';
-const verSigPath = '/verify/header';
+// const verSigPath = '/verify/header';
 // const signifyUrl = import.meta.env.VITE_SIGNIFY_URL;
 const serverUrl = import.meta.env.VITE_SERVER_URL;
 let extensionId = '';
 
 const MainComponent = () => {
   const [selectedComponent, setSelectedComponent] = useState(null);
-  const [client, setClient] = useState<any | null>(null);
+  // const [client, setClient] = useState<any | null>(null);
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false); // Open drawer by default
   // const [passcode, setPasscode] = useState('');
   const [status, setStatus] = useState('Connect');
   // const [selectedOption1, setSelectedOption1] = useState(''); // Step 2 Selection
-  const [selectedOption2, setSelectedOption2] = useState(''); // Step 3 Selection
+  // const [selectedOption2, setSelectedOption2] = useState(''); // Step 3 Selection
   // const [activeStep, setActiveStep] = useState(0);
   // const steps = ['Insert passcode', 'Choose an identifier', 'Choose a credential', 'Done'];
   const [modalError, setModalError] = useState('');
@@ -132,6 +132,7 @@ const MainComponent = () => {
       if (event.source !== window) {
         return;
       }
+      // Asynchronously receiving Signatures from browser extension  for initial login
       if (event.data.type && event.data.type === "signify-signature") {
         const headers = event.data.data.headers;
         const credential = event.data.data.credential;
@@ -155,8 +156,8 @@ const MainComponent = () => {
           const responseData = await response.json();
           if (responseData.result === 'success') {
             setStatus('Connected')
-            setClient('fake client')
-            setSelectedOption2('fake said')
+            // setClient('fake client')
+            // setSelectedOption2('fake said')
             setModalError('')
           } else {
             setStatus('Failed')
@@ -169,7 +170,6 @@ const MainComponent = () => {
       }
       if (event.data.type && event.data.type === "signify-extension") {
         console.log("Content scrip loaded");
-        // setExtensionId(event.data.data.extensionId);
         extensionId = event.data.data.extensionId;
       }
     },
@@ -191,7 +191,7 @@ const MainComponent = () => {
   };
 
   const handleClose = () => {
-    if (client !== null && status !== 'Connected')
+    if (status !== 'Connected')
       return;
     setOpen(false);
     setModalError('')
@@ -229,12 +229,12 @@ const MainComponent = () => {
 
   const renderComponent = (componentName: any) => {
     //check if the client is not null then render the component otherwise set the drwar to true
-    if (client === null || selectedOption2 === '') {
-      setDrawerOpen(true);
-      setModalError(`Please connect to the agent first`)
-      setOpen(true);
-      return;
-    }
+    // if (client === null || selectedOption2 === '') {
+    //   setDrawerOpen(true);
+    //   setModalError(`Please connect to the agent first`)
+    //   setOpen(true);
+    //   return;
+    // }
     setSelectedComponent(componentName);
   };
 
@@ -247,23 +247,23 @@ const MainComponent = () => {
     return
   }
 
-  const getSelectedAcdc = () => {
-    const acdc_found = acdcs.find(acdc => acdc.sad.d === selectedOption2)
-    if (acdc_found !== undefined) {
-      return acdc_found
-    }
-    return undefined
-  }
+  // const getSelectedAcdc = () => {
+  //   const acdc_found = acdcs.find(acdc => acdc.sad.d === selectedOption2)
+  //   if (acdc_found !== undefined) {
+  //     return acdc_found
+  //   }
+  //   return undefined
+  // }
 
-  const resetAidSelected = () => {
-    setActiveStep(1)
-    handleClickOpen()
-    setSelectedOption1('')
-    setSelectedOption2('')
-    setStatus('Connecting')
-    setModalError('Select a new identifier and credential')
+  // const resetAidSelected = () => {
+  //   // setActiveStep(1)
+  //   handleClickOpen()
+  //   // setSelectedOption1('')
+  //   setSelectedOption2('')
+  //   setStatus('Connecting')
+  //   setModalError('Select a new identifier and credential')
 
-  }
+  // }
 
   // const connectToAgent = async (client: SignifyClient) => {
   //   try {
@@ -409,7 +409,7 @@ const MainComponent = () => {
               component="div"
               sx={{ position: 'absolute', right: 10, top: 10 }}
               onClick={handleClose}
-              disabled={client !== null && status === 'Failed'}
+              disabled={ status === 'Failed'}
             >
               <CloseIcon />
             </IconButton>
@@ -586,15 +586,12 @@ const MainComponent = () => {
           </Stepper> */}
         </DialogContent>
       </Dialog>
-      {client === null && <LandingComponent text='Welcome to EBA portal' />}
-      {selectedComponent === 'Check Status' && client !== null && <MyTable
-        client={client}
+      {status !== 'Connected' && <LandingComponent text='Welcome to EBA portal' />}
+      {selectedComponent === 'Check Status'  && <MyTable
         setSelectedComponent={setSelectedComponent}
-        selectedAcdc={selectedOption2}
         selectedAid={getSelectedAid()}
       />}
-      {selectedComponent === 'Upload Report' && client !== null && <DragAndDropUploader
-        client={client}
+      {selectedComponent === 'Upload Report'  && <DragAndDropUploader
         errorUpload={errorUpload}
         setErrorUpload={setErrorUpload}
         submitResult={submitResult}
@@ -602,8 +599,7 @@ const MainComponent = () => {
         selectedFile={selectedFile}
         setSelectedFile={setSelectedFile}
         setSelectedComponent={setSelectedComponent}
-        resetAidSelected={resetAidSelected}
-        selectedAcdc={selectedOption2}
+        // selectedAcdc={selectedOption2}
         selectedAid={getSelectedAid()}
       />}
 
@@ -612,13 +608,13 @@ const MainComponent = () => {
 };
 
 //write a function that takes a string and adds ellipses to it if it is too long in the middle of the string, only show 4 characters on each side of the ellipses
-const reduceString = (str: string) => {
-  if (str.length > 40) { //TODO change to smaller number
-    return str.slice(0, 6) + '...' + str.slice(str.length - 6, str.length)
-  }
+// const reduceString = (str: string) => {
+//   if (str.length > 40) { //TODO change to smaller number
+//     return str.slice(0, 6) + '...' + str.slice(str.length - 6, str.length)
+//   }
 
-  return str
-}
+//   return str
+// }
 
 interface TextComponentProps {
   text: string;
@@ -642,7 +638,7 @@ const LandingComponent: React.FC<TextComponentProps> = ({ text }) => (
 )
 
 
-const DragAndDropUploader = ({ client, errorUpload, setErrorUpload, submitResult, setSubmitResult, selectedFile, setSelectedFile, setSelectedComponent, resetAidSelected, selectedAid, selectedAcdc }) => {
+const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSubmitResult, selectedFile, setSelectedFile, setSelectedComponent, selectedAid }) => {
 
   useEffect(() => {
     setErrorUpload('')
@@ -682,10 +678,10 @@ const DragAndDropUploader = ({ client, errorUpload, setErrorUpload, submitResult
   };
 
   // Function to perform the upload request
-  async function upload(aid: string, said: string, report: string): Promise<any> {
+  async function upload(report: string): Promise<any> {
     const formData = new FormData();
     formData.append('upload', report);
-    said = "asdasd"
+    const said = "asdasd"
     
     // Send signed request
     console.log("Form data is",formData.get('upload'))
@@ -693,8 +689,10 @@ const DragAndDropUploader = ({ client, errorUpload, setErrorUpload, submitResult
       type: "fetch-resource",
       subtype: "auto-signin-signature",
     });
-
-    const headers = data.headers;
+    if (error) {
+      window.postMessage({ type: "select-auto-signin" }, "*");
+    } else {
+      const headers = data.headers;
     const url = `${serverUrl}${uploadPath}/${headers["signify-resource"]}/${said}`
 
     const response = await fetch(url, {
@@ -706,6 +704,9 @@ const DragAndDropUploader = ({ client, errorUpload, setErrorUpload, submitResult
     if (response.ok) {
       console.log("upload OK")
     }
+    }
+
+    
 
       // alert(
       //   "Signed headers received\n" + JSON.stringify(data.headers, null, 2)
@@ -724,7 +725,7 @@ const DragAndDropUploader = ({ client, errorUpload, setErrorUpload, submitResult
     setSubmitResult('uploading')
     //wait 2 seconds
     //await new Promise(r => setTimeout(r, 2000));
-    await upload(selectedAid, selectedAcdc, selectedFile)
+    await upload( selectedFile)
 
     setSubmitResult(`done|${selectedFile.name}`)
     // await new Promise(r => setTimeout(r, 2000));
@@ -847,7 +848,7 @@ const DragAndDropUploader = ({ client, errorUpload, setErrorUpload, submitResult
   );
 };
 
-const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) => {
+const MyTable = ({ setSelectedComponent, selectedAid }) => {
   const [data, setData] = useState<Array<any>>();
   const [selectedReport, setSelectedReport] = useState(null);
   const [openModalTable, setOpenModalTable] = useState(false);
@@ -903,6 +904,9 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
       type: "fetch-resource",
       subtype: "auto-signin-signature",
     });
+    if (error) {
+      window.postMessage({ type: "select-auto-signin" }, "*");
+    } else {
 
     const headers = data.headers;
     const url = `${serverUrl}${statusPath}/${headers["signify-resource"]}`
@@ -914,7 +918,6 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
     
     if (response.ok) {
       const response_signed_data = await response.json();
-      console.log("RM HERE2")
       console.log(JSON.stringify(response_signed_data))
       return response_signed_data;
     
@@ -922,6 +925,7 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
       console.log("Error in check upload")
       return {}
     }
+  }
 
     // const response_signed = await client.signedFetch(serverUrl,`${statusPath}/${aid.prefix}`, 'GET',null,aid.name)
     // const response_signed_data = await response_signed.json();
