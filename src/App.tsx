@@ -286,7 +286,7 @@ const MainComponent = () => {
         width: '100vw'
       }}
     >
-      <AppBar position="fixed" sx={{ width: '100%' }}>
+      <AppBar position="fixed" sx={{ width: '100%' }} style={{zIndex:0}}>
         <Toolbar sx={{
           display: 'flex',
           justifyContent: 'space-between',
